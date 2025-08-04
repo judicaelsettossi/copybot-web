@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | CopyTrader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-900 text-white min-h-screen px-4 py-6">
+    <!-- HEADER -->
+    <header class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl font-bold">📈 CopyTrader</h1>
+      <button class="bg-red-600 px-4 py-2 rounded hover:bg-red-700">
+        Déconnexion
+      </button>
+    </header>
+
+    <!-- USER INFO -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div class="bg-gray-800 p-4 rounded-xl shadow">
+        <h2 class="text-sm uppercase text-gray-400">Solde total</h2>
+        <p class="text-2xl font-semibold mt-2">◎ 253.41</p>
+      </div>
+      <div class="bg-gray-800 p-4 rounded-xl shadow">
+        <h2 class="text-sm uppercase text-gray-400">Gains / Pertes</h2>
+        <p class="text-2xl font-semibold mt-2 text-green-500">+12.76%</p>
+      </div>
+      <div class="bg-gray-800 p-4 rounded-xl shadow">
+        <h2 class="text-sm uppercase text-gray-400">Wallet connecté</h2>
+        <p class="text-sm mt-2 break-all">9sdfG7f...XPL2</p>
+      </div>
+    </section>
+
+    <!-- COPIED TOKENS -->
+    <section class="mb-10">
+      <h2 class="text-xl font-semibold mb-4">🪙 Tokens copiés</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm text-left">
+          <thead class="bg-gray-700 text-gray-300">
+            <tr>
+              <th class="px-4 py-2">Token</th>
+              <th class="px-4 py-2">Prix Achat</th>
+              <th class="px-4 py-2">Prix Actuel</th>
+              <th class="px-4 py-2">PnL %</th>
+            </tr>
+          </thead>
+          <tbody id="tokenTable" class="bg-gray-800 divide-y divide-gray-700">
+            <!-- À remplir dynamiquement -->
+            <tr>
+              <td class="px-4 py-2">SOL</td>
+              <td class="px-4 py-2">102.3</td>
+              <td class="px-4 py-2">110.4</td>
+              <td class="px-4 py-2 text-green-500">+7.9%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TOP TRADERS -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4">🏆 Top Traders</h2>
+      <ul id="topTraders" class="space-y-3">
+        <li class="bg-gray-800 p-4 rounded-lg flex justify-between">
+          <span>👤 0xDe4f...123A</span>
+          <span class="text-green-400 font-semibold">ROI: +83%</span>
+        </li>
+        <li class="bg-gray-800 p-4 rounded-lg flex justify-between">
+          <span>👤 0xB1a9...C8E3</span>
+          <span class="text-green-400 font-semibold">ROI: +75%</span>
+        </li>
+      </ul>
+    </section>
+
+    <script src="app.js"></script>
+  </body>
+</html>
