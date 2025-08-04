@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: copybot-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    volumes:
+      - ./backend:/app
+    networks:
+      - copybot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: copybot-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - copybot-network
+    restart: unless-stopped
+    environment:
+      - API_BASE_URL=http://localhost:8000
+
+  # Base de données PostgreSQL (pour plus tard)
+  # database:
+  #   image: postgres:15-alpine
+  #   container_name: copybot-db
+  #   environment:
+  #     POSTGRES_DB: copybot
+  #     POSTGRES_USER: copybot_user
+  #     POSTGRES_PASSWORD: copybot_pass
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - copybot-network
+  #   restart: unless-stopped
+
+networks:
+  copybot-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:
