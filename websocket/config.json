@@ -1,0 +1,20 @@
+{
+  "websocket": {
+    "port": 8080,
+    "host": "localhost"
+  },
+  "solana": {
+    "rpcUrl": "https://api.mainnet-beta.solana.com",
+    "wsUrl": "wss://api.mainnet-beta.solana.com",
+    "commitmentLevel": "confirmed"
+  },
+  "ethereum": {
+    "rpcUrl": "https://mainnet.infura.io/v3/YOUR_INFURA_KEY",
+    "wsUrl": "wss://mainnet.infura.io/ws/v3/YOUR_INFURA_KEY"
+  },
+  "tracking": {
+    "maxWallets": 100,
+    "updateInterval": 1000,
+    "retryAttempts": 3
+  }
+}
