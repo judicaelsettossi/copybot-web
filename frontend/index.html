@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copy Trading Bot - Gestionnaire Wallets</title>
+
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts - Public Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 pour les notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Public Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#00ff88',
+                        secondary: '#00d4ff',
+                        accent: '#ff006e',
+                        dark: '#0f172a'
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .wallet-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .wallet-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .status-active {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+        }
+        .status-inactive {
+            background: linear-gradient(135deg, #64748b, #94a3b8);
+        }
+        .status-error {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+        }
+        .loader {
+            border-top-color: #00ff88;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                        🤖 Copy Trading Bot
+                    </h1>
+                    <p class="text-slate-400 mt-1 text-sm">Gestionnaire de wallets & Suivi en temps réel</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Statut API -->
+                    <div id="apiStatus" class="flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
+                        <div class="w-2 h-2 bg-red-400 rounded-full mr-2 animate-pulse"></div>
+                        API Déconnectée
+                    </div>
+                    <!-- Compteur wallets -->
+                    <div class="flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                        <span>👁️</span>
+                        <span id="walletCount" class="ml-1 font-bold">0</span>
+                        <span class="ml-1">wallets</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <div class="container mx-auto px-6 py-8 max-w-6xl">
+
+        <!-- Section Ajouter un Wallet -->
+        <div class="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 mb-8">
+            <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                <span class="mr-3">➕</span> Ajouter un Wallet
+            </h2>
+
+            <form id="addWalletForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Adresse Wallet -->
+                    <div class="md:col-span-2">
+                        <label for="walletAddress" class="block text-sm font-medium text-slate-300 mb-2">
+                            Adresse Wallet Solana
+                        </label>
+                        <input
+                            type="text"
+                            id="walletAddress"
+                            name="address"
+                            placeholder="Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+                            class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-white placeholder-slate-400 font-mono text-sm"
+                            required
+                        >
+                        <p class="text-xs text-slate-500 mt-1">Adresse Solana valide (32-44 caractères)</p>
+                    </div>
+
+                    <!-- Label -->
+                    <div>
+                        <label for="walletLabel" class="block text-sm font-medium text-slate-300 mb-2">
+                            Label (optionnel)
+                        </label>
+                        <input
+                            type="text"
+                            id="walletLabel"
+                            name="label"
+                            placeholder="Ex: Whale #1"
+                            class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-white placeholder-slate-400"
+                            maxlength="50"
+                        >
+                    </div>
+                </div>
+
+                <!-- Bouton Submit -->
+                <div class="flex justify-end">
+                    <button
+                        type="submit"
+                        id="addWalletBtn"
+                        class="flex items-center px-6 py-3 bg-gradient-to-r from-primary to-secondary text-slate-900 font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                        <span id="addWalletBtnText">Ajouter Wallet</span>
+                        <span id="addWalletLoader" class="hidden ml-2 w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full loader"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section Stats rapides -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Wallets Actifs</p>
+                        <p id="activeWallets" class="text-2xl font-bold text-primary">0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                        <span class="text-primary">✅</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-secondary/10 to-secondary/5 border border-secondary/20 rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Wallets Inactifs</p>
+                        <p id="inactiveWallets" class="text-2xl font-bold text-secondary">0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-secondary/20 rounded-lg flex items-center justify-center">
+                        <span class="text-secondary">⏸️</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20 rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Erreurs</p>
+                        <p id="errorWallets" class="text-2xl font-bold text-accent">0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
+                        <span class="text-accent">❌</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border border-yellow-500/20 rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Total Tracking</p>
+                        <p id="totalWallets" class="text-2xl font-bold text-yellow-500">0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-yellow-500">📊</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Wallets Trackés -->
+        <div class="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-semibold flex items-center">
+                    <span class="mr-3">👁️</span> Wallets Trackés
+                </h2>
+                <button
+                    id="refreshWallets"
+                    class="flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200 text-sm"
+                >
+                    <span id="refreshIcon" class="mr-2">🔄</span>
+                    Actualiser
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="walletsLoading" class="text-center py-12">
+                <div class="inline-block w-8 h-8 border-4 border-slate-600 border-t-primary rounded-full loader mb-4"></div>
+                <p class="text-slate-400">Chargement des wallets...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="walletsEmpty" class="hidden text-center py-12">
+                <div class="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">👻</span>
+                </div>
+                <p class="text-slate-400 text-lg mb-2">Aucun wallet tracké</p>
+                <p class="text-slate-500 text-sm">Ajoutez votre premier wallet ci-dessus pour commencer !</p>
+            </div>
+
+            <!-- Liste des wallets -->
+            <div id="walletsList" class="hidden space-y-4">
+                <!-- Les wallets seront injectés ici par JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script principal -->
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3000';
+        const WEBSOCKET_URL = 'ws://localhost:3001';
+
+        // Variables globales
+        let wallets = [];
+        let websocket = null;
+        let isLoading = false;
+
+        // Elements DOM
+        const elements = {
+            addWalletForm: document.getElementById('addWalletForm'),
+            addWalletBtn: document.getElementById('addWalletBtn'),
+            addWalletBtnText: document.getElementById('addWalletBtnText'),
+            addWalletLoader: document.getElementById('addWalletLoader'),
+            walletAddress: document.getElementById('walletAddress'),
+            walletLabel: document.getElementById('walletLabel'),
+            walletsList: document.getElementById('walletsList'),
+            walletsLoading: document.getElementById('walletsLoading'),
+            walletsEmpty: document.getElementById('walletsEmpty'),
+            refreshWallets: document.getElementById('refreshWallets'),
+            refreshIcon: document.getElementById('refreshIcon'),
+            apiStatus: document.getElementById('apiStatus'),
+            walletCount: document.getElementById('walletCount'),
+            activeWallets: document.getElementById('activeWallets'),
+            inactiveWallets: document.getElementById('inactiveWallets'),
+            errorWallets: document.getElementById('errorWallets'),
+            totalWallets: document.getElementById('totalWallets')
+        };
+    </script>
+
+    <!-- Scripts -->
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/websocket.js"></script>
+    <script src="assets/js/wallet-manager.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
